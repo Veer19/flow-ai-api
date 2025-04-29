@@ -1,4 +1,4 @@
-name: Build and Deploy to Azure
+name: Build and Deploy to Azure App Service (Containers)
 
 on:
     push:
@@ -6,31 +6,32 @@ on:
 
 permissions:
     id-token: write
-    contents: read # Optional but recommended
+    contents: read
 
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
 
         steps:
-            - name: Checkout code
+            - name: Checkout repository
               uses: actions/checkout@v3
 
-            - name: Log in to Azure
+            - name: Log in to Azure using OIDC
               uses: azure/login@v1
               with:
                   client-id: ${{ secrets.AZURE_CLIENT_ID }}
                   tenant-id: ${{ secrets.AZURE_TENANT_ID }}
                   subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+                  auth-type: OIDC
 
-            - name: Log in to Azure Container Registry
+            - name: Log in to Azure Container Registry (ACR)
               uses: azure/docker-login@v1
               with:
                   login-server: flowaiacr.azurecr.io
                   username: ${{ secrets.REGISTRY_USERNAME }}
                   password: ${{ secrets.REGISTRY_PASSWORD }}
 
-            - name: Build and push Docker image
+            - name: Build and push Docker image to ACR
               run: |
                   docker build -t flowaiacr.azurecr.io/flowaiapi:latest .
                   docker push flowaiacr.azurecr.io/flowaiapi:latest
