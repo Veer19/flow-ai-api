@@ -84,7 +84,7 @@ class ProjectUpdate(BaseModel):
     class Config:
         extra = "forbid"  # Prevent additional fields
 
-@router.post("/", response_model=ProjectResponse)
+@router.post("", response_model=ProjectResponse)
 async def create_project(project: ProjectCreate = Body(...)):
     """
     Create a new project document in MongoDB
@@ -120,7 +120,7 @@ async def create_project(project: ProjectCreate = Body(...)):
         logger.error(f"Failed to create project: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to create project: {str(e)}")
 
-@router.get("/", response_model=list[ProjectResponse])
+@router.get("", response_model=list[ProjectResponse])
 async def get_projects():
     """
     Get all projects from MongoDB with complete structure

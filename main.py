@@ -12,7 +12,7 @@ async def lifespan(app: FastAPI):
     yield
     await close_mongo_connection()
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 
 # Add CORS middleware
 app.add_middleware(
