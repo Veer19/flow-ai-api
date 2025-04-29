@@ -4,6 +4,10 @@ on:
     push:
         branches: [master]
 
+permissions:
+    id-token: write
+    contents: read # Optional but recommended
+
 jobs:
     build-and-deploy:
         runs-on: ubuntu-latest
