@@ -35,4 +35,4 @@ app.include_router(projects.router, prefix="/projects", tags=["projects"])
 
 @app.get("/health")
 async def health_check():
-    return {"status": "ok"} 
+    return {"status": "Flow AI API is running"} 
