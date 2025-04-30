@@ -17,7 +17,7 @@ app = FastAPI(lifespan=lifespan, redirect_slashes=False)
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://flow-bzj3ie6pf-veer19s-projects.vercel.app", "http://localhost:3000"],  # Your Next.js app origin
+    allow_origins=["https://flow-ai-murex.vercel.app", "http://localhost:3000"],  # Your Next.js app origin
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

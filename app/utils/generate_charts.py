@@ -110,10 +110,6 @@ async def generate_chart_concepts(project_id: str):
             separators=(',', ':'), 
             ensure_ascii=False)
         )
-
-        # Save prompt to a txt file
-        with open("chart_recommendations_prompt.txt", "w", encoding="utf-8") as f:
-            f.write(prompt)
         # Call the LLM to generate chart recommendations
         llm_response = await query_azure_openai(prompt, temperature=0.8)
         
@@ -395,11 +391,6 @@ async def generate_chart_real_data(project_id: str, chart_info: Dict[str, Any], 
         separators=(',', ':'), 
         ensure_ascii=False),
     )
-    
-    # Save prompt to a txt file
-    with open("real_data_prompt.txt", "w", encoding="utf-8") as f:
-        f.write(prompt)
-    
     # Call the LLM to generate data processing code
     llm_response = await query_azure_openai(prompt, response_type='text')
     
