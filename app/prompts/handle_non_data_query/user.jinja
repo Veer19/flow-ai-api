@@ -1,0 +1,13 @@
+The user has sent a message that does not seem to need data analysis.
+
+Here is the message:
+---
+{{ query }}
+---
+
+If relevant, here is the context from earlier in the conversation:
+{% for msg in past_messages %}
+- {{ msg.role }}: {{ msg.content }}
+{% endfor %}
+
+Respond appropriately.

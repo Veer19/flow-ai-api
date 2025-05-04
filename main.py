@@ -5,6 +5,7 @@ from app.services.mongodb import close_mongo_connection, connect_to_mongo
 from contextlib import asynccontextmanager
 from app.api import projects
 from app.middleware.mongodb_serializer import MongoDBSerializerMiddleware
+from app.api import agent
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -27,12 +28,11 @@ app.add_middleware(
 app.add_middleware(MongoDBSerializerMiddleware)
 
 # Include routers
-app.include_router(uploads.router, prefix="/upload", tags=["upload"])
-app.include_router(datasets.router, prefix="/datasets", tags=["datasets"])
-app.include_router(charts.router, prefix="/charts", tags=["charts"])
-app.include_router(sessions.router, prefix="/api")
-app.include_router(projects.router, prefix="/projects", tags=["projects"])
 
 @app.get("/health")
 async def health_check():
     return {"status": "Flow AI API is running"} 
+app.include_router(agent.router, prefix="/chat", tags=["chat"])
+app.include_router(sessions.router, prefix="/api")
+app.include_router(projects.router, prefix="/projects", tags=["projects"])
+app.include_router(charts.router, prefix="/charts", tags=["charts"])

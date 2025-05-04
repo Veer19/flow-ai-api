@@ -1,0 +1,20 @@
+Conversation history:
+{% for msg in past_messages %}
+- ({{ msg.role }}) {{ msg.content }}
+{% endfor %}
+
+Current user query:
+{{ query }}
+
+Available datasets:
+{% for dataset in datasets %}
+📁 Dataset {{ loop.index }}:
+- ID: {{ dataset['id'] }}
+- Name: {{ dataset['filename'] }} ({{ dataset['rows'] }} rows, {{ dataset['columns'] }} columns)
+- Columns:
+  {% for col in dataset['columnMetadata'] %}
+    - {{ col['name'] }} ({{ col['type'] }})
+  {% endfor %}
+- Sample Row:
+  {{ dataset['sampleData'][0] | tojson }}
+{% endfor %}

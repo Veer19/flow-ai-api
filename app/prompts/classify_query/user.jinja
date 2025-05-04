@@ -1,0 +1,7 @@
+Latest user message:
+{{ query }}
+
+Recent history (optional):
+{% for m in past_messages %}
+- ({{ m.role }}) {{ m.content }}
+{% endfor %}
