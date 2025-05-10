@@ -52,6 +52,7 @@ using ➊ the chart concept, ➋ the dataset metadata, and ➌ the dummy chart J
     5. Return `{'options': options_obj, 'series': series_list}`.
     6. Use only standard library and **pandas** imports.
     7. Feel free to change the chart colors to be more meaningful and colorful.
+    8. If there are any charts with dates involved, aggregate the data by week, month, or year.
 
     ---
     ### INTERNAL GUIDANCE  (assistant, do not output)

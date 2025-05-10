@@ -18,10 +18,11 @@ Also decide whether the raw data should be displayed in full. For example:
 - If the data contains customer records, product listings, etc., and is useful to view → set `show_data = true`
 - If the result is just an aggregated number, single insight, or contains sensitive info → set `show_data = false`
 
-Return a JSON object with the following fields:
+Always return a JSON object with the following fields:
 - `type`: `"analysis"`
 - `message`: explanation of the result in natural language
 - `data`: the original result
+- `table_data`: the original result in a tabular format, as a list of dictionaries with meaningful keys
 - `show_data`: true or false
 
 🧪 Format:
@@ -29,7 +30,18 @@ Return a JSON object with the following fields:
 {
   "type": "analysis",
   "message": "Your top 5 customers are ...",
-  "data": [...],
+  "data": ['Customer1', 'Customer2', 'Customer3'],
+  "table_data": [
+    {
+        "Customer": "Customer1",
+    },
+    {
+        "Customer": "Customer2",
+    },
+    {
+        "Customer": "Customer3",
+    }
+  ],
   "show_data": true
 }
 ```

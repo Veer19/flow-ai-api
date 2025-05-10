@@ -18,6 +18,8 @@ Edge‑case Rules
 - Use `how="left"` for joins unless specified.
 - `.reset_index(drop=True)` before returning tabular dicts.
 - If no analysis needed, return an empty dict.
+- Always return the result in a dictionary format
+- If the result is a list, return it as a list of dictionaries
 
 Example (not to output verbatim)
 ```python

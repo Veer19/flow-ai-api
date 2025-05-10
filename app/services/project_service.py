@@ -7,7 +7,7 @@ from app.utils.json_encoders import ensure_json_serializable
 from bson.objectid import ObjectId
 logger = logging.getLogger(__name__)
 
-async def create_project(project: ProjectCreate):
+async def create_project(user_id: str, project: ProjectCreate):
     """
     Create a new project document in MongoDB
     """
@@ -22,6 +22,7 @@ async def create_project(project: ProjectCreate):
             "description": project.description,
             "status": "CREATED",
             "createdAt": datetime.now(),
+            "userId": user_id,
             "lastUpdatedAt": datetime.now(),
         }
         
@@ -39,7 +40,7 @@ async def create_project(project: ProjectCreate):
         raise HTTPException(status_code=500, detail=f"Failed to create project: {str(e)}")
 
 
-async def get_projects():
+async def get_projects(user_id: str):
     """
     Get all projects from MongoDB with complete structure
     """
@@ -49,7 +50,7 @@ async def get_projects():
         
         # Fetch all projects - using async iteration
         projects = []
-        async for project in projects_collection.find():
+        async for project in projects_collection.find({"userId": user_id}):
             # Build complete project structure with defaults
             formatted_project = ProjectResponse(
                 id=str(project["_id"]),
@@ -68,17 +69,21 @@ async def get_projects():
         logger.error(f"Failed to fetch projects: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to fetch projects: {str(e)}")
 
-async def get_project(project_id: str):
+async def get_project(project_id: str, user_id: str):
     """
     Get a specific project by ID with complete structure
     """
     try:
+        logger.info(f"Fetching project {project_id} for user {user_id}")
         # Get the projects collection
         projects_collection = get_collection("projects")
         
         # Find the project by ID
         try:
-            project = await projects_collection.find_one({"_id": ObjectId(project_id)})
+            project = await projects_collection.find_one({
+                "_id": ObjectId(project_id), 
+                "userId": user_id
+            })
         except Exception as e:
             raise HTTPException(status_code=404, detail="Project not found")
         
@@ -135,3 +140,4 @@ async def get_project_data_sources(project_id: str):
             status_code=500,
             detail=f"Failed to fetch project files: {str(e)}"
         )
+    

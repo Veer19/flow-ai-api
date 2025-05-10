@@ -6,8 +6,6 @@ from app.agent.utils import extract_json_from_llm_response
 import math
 
 
-def is_tabular(data: Any) -> bool:
-    return isinstance(data, list) and all(isinstance(row, dict) for row in data)
 
 
 def clean_value(value):
@@ -31,12 +29,6 @@ def attach_table_data(response: Dict[str, Any], result: Any) -> Dict[str, Any]:
     print("ATTACHING TABLE DATA")
     print(result)
     print("IS TABULAR")
-    print(is_tabular(result))
-    if is_tabular(result):
-        response["table_data"] = clean_table_data(result)
-        response["show_data"] = True
-    else:
-        response["show_data"] = False
     return response
 
 
@@ -55,19 +47,21 @@ async def format_response_llm(query: str, result: Any) -> Dict[str, Any]:
         system_prompt=system_prompt, 
         profile="creative"
     )
-
+    print("RESPONSE CONTENT")
+    print(response_content)
     try:
         parsed = extract_json_from_llm_response(response_content)
         print("PARSED")
         print(parsed)
-        return attach_table_data(parsed, result)
+        return parsed
     except Exception:
-        fallback = {
-            "type": "analysis",
-            "message": response_content,
-            "data": result
+        print("FAILED TO PARSE")
+        return {
+            "type": "error",
+            "message": "I couldn't find an answer. Could you please provide more specific information about what you're looking for?",
+            "data": None,
+            "attach": None
         }
-        return attach_table_data(fallback, result)
 
 
 async def format_response(state: AgentState) -> AgentState:
@@ -82,7 +76,8 @@ async def format_response(state: AgentState) -> AgentState:
                 "I couldn't find an answer. "
                 "Could you please provide more specific information about what you're looking for?"
             ),
-            "show_data": False
+            "data": None,
+            "attach": None
         }
         return state
 

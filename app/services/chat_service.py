@@ -72,12 +72,12 @@ async def update_thread_ai(_id: str, ai_result: dict):
         attachments = []
         # Save ai_result to json
         
-
-        if ai_result.get("show_data"):
+        attach = ai_result.get("attach")
+        if attach:
             attachments = [
                 {
-                    "type": "inline-table",
-                    "attachment": ai_result.get("table_data")
+                    "type": attach,
+                    "attachment": ai_result.get("data")
                 }
             ]
         print("AI RESULT")
@@ -158,7 +158,7 @@ async def call_agent(project_id: str, thread_id: str, current_message: str, past
         print("RESULT")
         print(ai_state)
         with open("ai_result.json", "w") as f:
-            json.dump(ai_state['result'], f)
+            json.dump(ai_state, f)
         ai_message = await update_thread_ai(thread_id, ai_state['result'])
     except Exception as e:
         logger.error(f"Agent error: {str(e)}")

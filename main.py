@@ -6,6 +6,8 @@ from contextlib import asynccontextmanager
 from app.api import projects
 from app.middleware.mongodb_serializer import MongoDBSerializerMiddleware
 from app.api import agent
+from app.api.auth import verify_jwt_token
+from fastapi import Depends
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,3 +38,7 @@ app.include_router(agent.router, prefix="/chat", tags=["chat"])
 app.include_router(sessions.router, prefix="/api")
 app.include_router(projects.router, prefix="/projects", tags=["projects"])
 app.include_router(charts.router, prefix="/charts", tags=["charts"])
+
+@app.get("/secure-data")
+async def get_secure_data(user: dict = Depends(verify_jwt_token)):
+    return {"message": f"Hello {user['sub']}, here’s your protected data."}

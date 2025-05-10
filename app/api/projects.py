@@ -15,6 +15,9 @@ from app.utils.blob_storage import upload_to_blob_storage, cleanup_uploaded_blob
 from app.utils.csv_parser import read_and_parse_csv
 from app.models.projects import ProjectCreate, ProjectResponse
 from app.services.project_service import create_project, get_projects, get_project, get_project_data_sources
+from app.api.auth import verify_jwt_token
+from fastapi import Depends
+
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,34 +27,109 @@ router = APIRouter()
 
 
 @router.post("", response_model=ProjectResponse)
-async def create_project_endpoint(project: ProjectCreate = Body(...)):
+async def create_project_endpoint(project: ProjectCreate = Body(...), user: dict = Depends(verify_jwt_token)):
     """
     Create a new project document in MongoDB
     """
-    return await create_project(project)
+    return await create_project(user.get("sub"), project)
+
+
 
 @router.get("", response_model=list[ProjectResponse])
-async def get_projects_endpoint():
+async def get_projects_endpoint(user: dict = Depends(verify_jwt_token)):
     """
     Get all projects from MongoDB with complete structure
     """
-    return await get_projects()
+    return await get_projects(user.get("sub"))
 
 @router.get("/{project_id}", response_model=ProjectResponse)
-async def get_project_endpoint(project_id: str):
+async def get_project_endpoint(project_id: str, user: dict = Depends(verify_jwt_token)):
     """
     Get a specific project by ID with complete structure
     """
-    return await get_project(project_id)
+    return await get_project(project_id, user.get("sub"))
+
+@router.post("/{project_id}/upload-file")
+async def upload_single_file_endpoint(
+    project_id: str,
+    file: UploadFile = File(...),
+    user: dict = Depends(verify_jwt_token)
+):
+    """Upload a single CSV file to Azure Blob Storage and associate with a project."""
+    logger.info(f"Starting single file upload for project {project_id}")
+    
+    try:
+        # Verify project exists
+        projects_collection = get_collection("projects")
+        datasources_collection = get_collection("dataSources")
+        
+        project = await projects_collection.find_one({"_id": ObjectId(project_id), "userId": user.get("sub")})
+        if not project:
+            raise HTTPException(status_code=404, detail=f"Project not found")
+        
+        if not file.filename.endswith('.csv'):
+            raise HTTPException(status_code=400, detail="Only CSV files are supported")
+            
+        # Read and validate file
+        content = await file.read()
+        file_size = len(content)
+        
+        # Parse CSV
+        df, sample_data, column_names, column_types = await read_and_parse_csv(content, file_size, file.filename)
+        
+        # Upload to blob storage
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_filename = f"{project_id}/{timestamp}_{file.filename}"
+        blob_url = await upload_to_blob_storage(content, safe_filename)
+        
+        # Create file metadata
+        file_metadata = {
+            "projectId": str(project_id),
+            "filename": file.filename,
+            "blobPath": safe_filename,
+            "blobUrl": blob_url,
+            "size": file_size,
+            "type": 'csv',
+            "rows": len(df),
+            "columns": len(df.columns),
+            "sampleData": sample_data,
+            "columnMetadata": [
+                {"name": name, "type": column_types[name]} 
+                for name in column_names
+            ],
+            "createdAt": datetime.now(),
+            "lastUpdatedAt": datetime.now(),
+            "status": "READY",
+        }
+        
+        # Insert into MongoDB
+        await datasources_collection.insert_one(file_metadata)
+        
+        # Update project status
+        # await projects_collection.update_one(
+        #     {"_id": ObjectId(project_id)},
+        #     {"$set": {
+        #         # "status": "DATA_UPLOADED",
+        #         "lastUpdatedAt": datetime.now()
+        #     }}
+        # )
+        # Retyrn the object
+        return ensure_json_serializable(file_metadata)
+        
+    except Exception as e:
+        logger.error(f"Upload failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 @router.post("/{project_id}/upload-data")
 async def upload_project_data_endpoint(
     project_id: str,
-    files: List[UploadFile] = File(...)
+    files: List[UploadFile] = File(...),
+    user: dict = Depends(verify_jwt_token)
 ):
     """
     Upload CSV files to Azure Blob Storage and associate directly with a project.
     """
+    print("THIS IS GETTING CALLED")
     logger.info(f"Starting upload_project_data for project {project_id} with {len(files)} files")
     
     # Track files to be processed
@@ -64,7 +142,7 @@ async def upload_project_data_endpoint(
         datasources_collection = get_collection("dataSources")
         project_activities_collection = get_collection("projectActivities")
         
-        project = await projects_collection.find_one({"_id": ObjectId(project_id)})
+        project = await projects_collection.find_one({"_id": ObjectId(project_id), "userId": user.get("sub")})
         if not project:
             logger.error(f"Project with ID {project_id} not found")
             raise HTTPException(
@@ -206,17 +284,10 @@ async def upload_project_data_endpoint(
                     "lastUpdatedAt": datetime.now()
                 }}
             )
-            return {
-                "success": True,
-                "message": "Files uploaded successfully"
-            }
+            return ensure_json_serializable(file_metadata)
         else:
             logger.warning("No valid files to insert into MongoDB")
-            return {
-                "success": False,
-                "message": "No valid files were uploaded",
-                "files_uploaded": 0
-            }
+            return None
         
         
     except HTTPException:
@@ -284,6 +355,7 @@ async def establish_relationships_endpoint(project_id: str):
             source_info = {
                 "id": ds.get("id"),
                 "filename": ds.get("filename"),
+                "rows": ds.get("rows"),
                 "columns": [col.get("name") for col in ds.get("columnMetadata", [])],
                 "column_types": {col.get("name"): col.get("type") for col in ds.get("columnMetadata", [])},
                 "sample_data": ds.get("sampleData", [])[:2]  # Just a couple of rows for context
@@ -306,7 +378,16 @@ async def establish_relationships_endpoint(project_id: str):
         - Confidence level (high, medium, low)
         - A brief explanation of why you think this relationship exists
         
-        Format your response as a JSON object with a "relationships" array.
+        Note - 
+        Identify the relationships along the lines of main data source and master tables. Always create the relationship from the main data source to the master tables.
+        
+        Format your response as a JSON object with a "relationships" array with following fields:
+        tableA: string;
+        tableB: string;
+        keyA: string;
+        keyB: string;
+        description: string;
+        confidence: number;
         """
         
         # Call the LLM to analyze relationships

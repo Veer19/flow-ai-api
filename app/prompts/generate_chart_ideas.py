@@ -31,6 +31,7 @@ def get_generate_chart_ideas_prompt(project_context: str):
     - *THEN* output the final JSON only – nothing else.
     5. If two data sources relate, prefer a JOIN over standalone analysis.
     6. Every object must include all schema keys; no extra keys allowed.
+    7. If there are any charts with dates involved, aggregate the data by week, month, or year.
 
     ### INTERNAL STEPS (assistant, do not output)
     1. Parse `<DATA>`; inspect relationships & stats.
