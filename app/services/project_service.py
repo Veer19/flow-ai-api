@@ -58,6 +58,7 @@ async def get_projects(user_id: str):
                 natureOfData=project.get("natureOfData"),
                 description=project.get("description"),
                 status=project.get("status"),
+                stats=project.get("stats"),
                 createdAt=project.get("createdAt"),
                 lastUpdatedAt=project.get("lastUpdatedAt", project.get("createdAt"))
             )
@@ -97,6 +98,7 @@ async def get_project(project_id: str, user_id: str):
             natureOfData=project.get("natureOfData"),
             description=project.get("description"),
             status=project.get("status", "CREATED"),
+            stats=project.get("stats"),
             createdAt=project.get("createdAt"),
             lastUpdatedAt=project.get("lastUpdatedAt", project.get("createdAt"))
         )
@@ -105,7 +107,7 @@ async def get_project(project_id: str, user_id: str):
         
     except Exception as e:
         logger.error(f"Failed to fetch project: {str(e)}")
-        raise HTTPException(status_code=e.status_code, detail=f"Failed to fetch project: {str(e.detail)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch project: {str(e)}")
     
 async def get_project_data_sources(project_id: str):
     """

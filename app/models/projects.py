@@ -14,6 +14,12 @@ class ProjectCreate(BaseModel):
             }
         }
 
+class ProjectStats(BaseModel):
+    """Schema for project stats"""
+    title: str
+    description: str
+    value: float
+    type: str
 
 class ProjectResponse(BaseModel):
     """Schema for project response"""
@@ -23,6 +29,7 @@ class ProjectResponse(BaseModel):
     natureOfData: str
     status: str
     createdAt: datetime
+    stats: Optional[list[ProjectStats]] = []
     lastUpdatedAt: datetime
 
     class Config:
