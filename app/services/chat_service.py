@@ -74,12 +74,18 @@ async def update_thread_ai(_id: str, ai_result: dict):
         
         attach = ai_result.get("attach")
         if attach:
-            attachments = [
-                {
+            attach_data = ai_result.get("data")
+            if(type(attach_data) == dict):
+                for key, value in attach_data.items():
+                    attachments.append({
+                        "type": attach,
+                        "attachment": value
+                    })
+            else:
+                attachments.append({
                     "type": attach,
-                    "attachment": ai_result.get("data")
-                }
-            ]
+                    "attachment": attach_data
+                })
         print("AI RESULT")
         print(ai_result)
         print("ATTACHMENTS")
