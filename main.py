@@ -1,11 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import datasets, charts, uploads, sessions
 from app.services.mongodb import close_mongo_connection, connect_to_mongo
 from contextlib import asynccontextmanager
-from app.api import projects
+from app.api.projects import router as projects_router
 from app.middleware.mongodb_serializer import MongoDBSerializerMiddleware
-from app.api import agent
 from app.api.auth import verify_jwt_token
 from fastapi import Depends
 
@@ -34,10 +32,7 @@ app.add_middleware(MongoDBSerializerMiddleware)
 @app.get("/health")
 async def health_check():
     return {"status": "Flow AI API is running"} 
-app.include_router(agent.router, prefix="/chat", tags=["chat"])
-app.include_router(sessions.router, prefix="/api")
-app.include_router(projects.router, prefix="/projects", tags=["projects"])
-app.include_router(charts.router, prefix="/charts", tags=["charts"])
+app.include_router(projects_router, prefix="/projects", tags=["projects"])
 
 @app.get("/secure-data")
 async def get_secure_data(user: dict = Depends(verify_jwt_token)):

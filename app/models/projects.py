@@ -1,34 +1,28 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-class ProjectCreate(BaseModel):
+from app.models.stats import ProjectStats
+
+class ProjectRequestBody(BaseModel):
     name: str
-    natureOfData: str
     description: Optional[str] = ""
     class Config:
         json_schema_extra = {
             "example": {
-                "name": "123456789",
-                "natureOfData": "Sales",
+                "name": "Supermarket Sales Data",
                 "description": "Sales data analysis project"
             }
         }
 
-class ProjectStats(BaseModel):
-    """Schema for project stats"""
-    title: str
-    description: str
-    value: float
-    type: str
 
-class ProjectResponse(BaseModel):
+class Project(BaseModel):
     """Schema for project response"""
     id: str
     name: str
     description: str
-    natureOfData: str
     status: str
     createdAt: datetime
+    userId: str
     stats: Optional[list[ProjectStats]] = []
     lastUpdatedAt: datetime
 

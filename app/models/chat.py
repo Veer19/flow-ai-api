@@ -1,20 +1,30 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, Any
+from datetime import timezone
+from pydantic import field_validator
+
 
 class ChatFeedback(BaseModel):
     type: str
     remarks: str
 
+
 class ChatMetrics(BaseModel):
     tokens_used: int
     time_taken: float
+
 
 class Attachment(BaseModel):
     type: str
     attachment: list[Any]
 
+
 class Message(BaseModel):
+    id: str
+    thread_id: str
+    project_id: str
+    user_id: str
     role: str
     content: str
     attachments: list[Attachment]
@@ -22,53 +32,43 @@ class Message(BaseModel):
     feedback: Optional[ChatFeedback] = None
     metrics: Optional[ChatMetrics] = None
 
+    @field_validator("timestamp", mode="before")
+    @classmethod
+    def ensure_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
 
-class ThreadListItem(BaseModel):
-    thread_id: str
-    project_id: str
-    status: str
-    createdAt: datetime
-    lastUpdatedAt: datetime
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "thread_id": "123456789",
-                "project_id": "123456789",
-                "status": "OPEN",
-                "createdAt": "2024-04-29T18:24:22.783948",
-                "lastUpdatedAt": "2024-04-29T18:24:22.783948"
-            }
+    def to_llm_dict(self):
+        return {
+            "role": self.role,
+            "content": self.content
         }
+
 
 class Thread(BaseModel):
     """Schema for thread response"""
-    _id: str
-    thread_id: str
+    id: str
     project_id: str
+    user_id: str
     status: str
-    messages: list[Message]
-    createdAt: datetime
-    lastUpdatedAt: datetime
+    created_at: datetime
+    last_updated_at: datetime
+
+    @field_validator("created_at", "last_updated_at", mode="before")
+    @classmethod
+    def ensure_utc(cls, value: datetime) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
+
     class Config:
         json_schema_extra = {
             "example": {
-                "_id": "123456789",
-                "thread_id": "123456789",
                 "project_id": "123456789",
+                "user_id": "123456789",
                 "status": "OPEN",
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": "Hello, how are you?",
-                        "timestamp": "2024-04-29T18:24:22.783948",
-                        "attachments": [],
-                        "feedback": {
-                            "type": "positive",
-                            "remarks": "Good"
-                        }
-                    }
-                ],
-                "createdAt": "2024-04-29T18:24:22.783948",
-                "lastUpdatedAt": "2024-04-29T18:24:22.783948"
+                "created_at": "2024-04-29T18:24:22.783948",
+                "last_updated_at": "2024-04-29T18:24:22.783948"
             }
         }

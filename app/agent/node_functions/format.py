@@ -1,8 +1,8 @@
 from typing import Dict, Any
 from app.agent.config import AgentState
-from app.agent.llm_provider import ainvoke_llm
-from app.agent.prompt_engine import render_prompt
-from app.agent.utils import extract_json_from_llm_response
+from app.utils.llm_provider import ainvoke_llm
+from app.utils.prompt_engine import render_prompt
+from app.models.agent_response import FormatResponseLLMResponse
 import math
 
 
@@ -42,26 +42,13 @@ async def format_response_llm(query: str, result: Any) -> Dict[str, Any]:
         "result": result
     })
     system_prompt = render_prompt("format_response/system.jinja")
-    response_content = await ainvoke_llm(
+    response:FormatResponseLLMResponse = await ainvoke_llm(
         user_prompt=user_prompt, 
         system_prompt=system_prompt, 
-        profile="creative"
+        profile="creative",
+        response_model=FormatResponseLLMResponse
     )
-    print("RESPONSE CONTENT")
-    print(response_content)
-    try:
-        parsed = extract_json_from_llm_response(response_content)
-        print("PARSED")
-        print(parsed)
-        return parsed
-    except Exception:
-        print("FAILED TO PARSE")
-        return {
-            "type": "error",
-            "message": "I couldn't find an answer. Could you please provide more specific information about what you're looking for?",
-            "data": None,
-            "attach": None
-        }
+    return response
 
 
 async def format_response(state: AgentState) -> AgentState:
@@ -70,17 +57,12 @@ async def format_response(state: AgentState) -> AgentState:
     and optionally attaches a table view of the result.
     """
     if state.execution_result is None:
-        state.formatted_response = {
-            "type": "error",
-            "message": (
-                "I couldn't find an answer. "
-                "Could you please provide more specific information about what you're looking for?"
-            ),
-            "data": None,
-            "attach": None
-        }
+        state.formatted_response = FormatResponseLLMResponse(
+            type="error",
+            message="I couldn't find an answer. Could you please provide more specific information about what you're looking for?",
+        )
         return state
 
-    formatted = await format_response_llm(state.current_query, state.execution_result)
+    formatted:FormatResponseLLMResponse = await format_response_llm(state.current_query, state.execution_result)
     state.formatted_response = formatted
     return state

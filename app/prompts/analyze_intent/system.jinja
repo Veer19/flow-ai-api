@@ -13,7 +13,7 @@ Tasks
 
 Return (strict JSON)
 {
-  "required_datasets": [ "<dataset_id>", ... ],
+  "required_dataset_ids": [ "<dataset_id>", ... ],
   "analysis_description": "<one sentence>",
   "suggested_operations": [ "<step 1>", "<step 2>", ... ]
 }
@@ -26,7 +26,7 @@ Edge‑case Rules
 Example
 ```json
 {
-  "required_datasets": ["sales"],
+  "required_dataset_ids": ["7182i37122e232"],
   "analysis_description": "Calculate YOY revenue growth by product line.",
   "suggested_operations": [
     "parse order_date to datetime",

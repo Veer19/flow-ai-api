@@ -7,7 +7,7 @@ Input Context
 
 Tasks
 1. Write a single function `analyze_data(datasets: dict)` implementing the operations.
-2. Ensure the return value is JSON‑serializable.
+2. The datasets will be a dictionary with keys equal to the dataset ids and values equal to pandas dataframes.
 
 Return (code only)
 - No markdown, no headers, no comments outside the code block.
@@ -25,7 +25,7 @@ Example (not to output verbatim)
 ```python
 def analyze_data(datasets: dict):
     import pandas as pd
-    sales = datasets["sales.csv"]
+    sales = datasets["879172390821093"]
     sales["month"] = pd.to_datetime(sales["order_date"]).dt.to_period("M")
     df = sales.groupby("month")["revenue"].sum().reset_index()
     return df.to_dict(orient="records")

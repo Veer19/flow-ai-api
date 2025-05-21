@@ -1,6 +1,9 @@
 import logging
 from azure.storage.blob import BlobServiceClient
 from app.config import get_settings
+import pandas as pd
+import io
+from app.models.data_sources import DataSource
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -107,3 +110,43 @@ async def download_from_blob_storage(blob_path: str) -> bytes:
     except Exception as e:
         logger.error(f"Error downloading blob {blob_path}: {str(e)}")
         return None 
+    
+async def generate_blob_df(blob_path: str) -> pd.DataFrame:
+    """
+    Generate a CSV from a blob
+    """
+    # Now load the actual data from blob storage
+    
+    try:
+        # Get blob path and download content       
+        blob_content = await download_from_blob_storage(blob_path)
+       
+        # Try different encodings to read the CSV
+        try:
+            df = pd.read_csv(io.BytesIO(blob_content))
+        except UnicodeDecodeError:
+            try:
+                df = pd.read_csv(io.BytesIO(blob_content), encoding='latin1')
+            except Exception:
+                df = pd.read_csv(io.BytesIO(blob_content), encoding='utf-8', errors='replace')
+        
+        return df
+        
+    except Exception as e:
+        logger.error(f"Error loading {blob_path}: {str(e)}")
+        return None
+
+
+async def get_dataframes_dict(data_sources: list[DataSource], data_source_ids: list[str] = None) -> dict[str, pd.DataFrame]:
+    """
+    Get a dictionary of dataframes for the given data source ids
+    """
+    if data_source_ids:
+        used_data_sources = [ds for ds in data_sources if str(ds.id) in data_source_ids]
+    else:
+        used_data_sources = data_sources
+    dataframes = {}
+    for data_source in used_data_sources:
+        df = await generate_blob_df(data_source.blobPath)
+        dataframes[str(data_source.id)] = df
+    return dataframes

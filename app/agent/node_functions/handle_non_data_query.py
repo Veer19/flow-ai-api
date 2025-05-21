@@ -1,33 +1,32 @@
 from typing import Dict, Any, List
-from app.agent.prompt_engine import render_prompt
-from app.agent.utils import prepare_datasets_for_prompt, extract_json_from_llm_response
+from app.utils.prompt_engine import render_prompt
 from app.agent.config import AgentState
-from app.agent.llm_provider import ainvoke_llm
+from app.utils.llm_provider import ainvoke_llm
+from app.models.agent_response import FormatResponseLLMResponse
 
-async def handle_non_data_query_llm(query: str, past_messages: List[Dict[str, Any]]  ) -> Dict[str, Any]:
+async def handle_non_data_query_llm(query: str, past_messages: List[Dict[str, Any]]  ) -> str:
     user_prompt = render_prompt("handle_non_data_query/user.jinja", {
         "query": query,
         "past_messages": past_messages
     })
     system_prompt = render_prompt("handle_non_data_query/system.jinja")
-    response_content = await ainvoke_llm(
+
+    print("HANDLE NON DATA QUERY USER PROMPT")
+    print(user_prompt)
+    print("HANDLE NON DATA QUERY SYSTEM PROMPT")
+    print(system_prompt)
+    response:FormatResponseLLMResponse = await ainvoke_llm(
         user_prompt=user_prompt, 
         system_prompt=system_prompt, 
-        profile="analyze"
+        profile="analyze",
+        response_model=FormatResponseLLMResponse
     )
-    print("HANDLE NON DATA QUERY RESPONSE")
-    print(response_content)
-    return response_content
+    return response
 
-async def handle_non_data_query(state: AgentState) -> Dict[str, Any]:
+async def handle_non_data_query(state: AgentState) -> AgentState:
     try:
-        result = await handle_non_data_query_llm(state.current_query, state.past_messages)
-        state.formatted_response = {
-            "type": "response",
-            "message": result,
-            "data": [],
-            "show_data": False
-        }
+        result: FormatResponseLLMResponse = await handle_non_data_query_llm(state.current_query, state.past_messages)
+        state.formatted_response = result
         return state
     except Exception as e:
         print(f"[handle_non_data_query] Error: {str(e)}")
