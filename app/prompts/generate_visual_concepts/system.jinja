@@ -7,27 +7,14 @@ Inputs
 - Data Sources: data sources with column metadata
 - Relationships: relationships between data sources
 - Number of Visuals: number of visuals to generate
-- Stats: stats for the project
+- Stats: stats for the project (Optional)
 - Visual Types: list of visual types to generate
 
 Output - A list of visual concepts with the following schema:
 - title: A short title for the visual
 - description: A detailed description of the visual
 - type: The type of visual (bar, line, pie, etc.)
-- data_sources_used: A list of data source ids that are used to calculate the visual
-
-Important Notes:
-- The python code should be a valid function called get_kpi_value that can be executed.
-- The function should take a single argument which is a dictionary of data sources with their column metadata. The key of this dictionary is the data source id
-- The function should return a single value that is a number.
-- Make sure the function imports the necessary libraries.
-
-
-### INTERNAL STEPS (assistant, do not output)
-1. Parse `<DATA>`; inspect relationships & stats.
-2. Brainstorm 6–8 insights; rank by impact.
-3. Keep top 4; ensure uniqueness.
-4. Generate IDs (slugify title).
+- required_dataset_ids: A list of data source ids that are used to calculate the visual
 
 
 

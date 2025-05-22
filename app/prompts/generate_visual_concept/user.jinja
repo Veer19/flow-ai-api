@@ -1,4 +1,15 @@
-Data Sources:
+Conversation history:
+{% for msg in past_messages %}
+- ({{ msg.role }}) {{ msg.content }}
+{% endfor %}
+
+Current user query:
+{{ query }}
+
+Visual Types:
+{{ visual_types | tojson }}
+
+Available datasets:
 {% for dataset in datasets %}
 📁 Dataset {{ loop.index }}:
 - ID: {{ dataset['id'] }}
@@ -10,11 +21,3 @@ Data Sources:
 - Sample Row:
   {{ dataset['sampleData'][0] | tojson }}
 {% endfor %}
-Relationships:
-{{ relationships | tojson }}
-
-Sample Series Output for the visual concept:
-{{ sample_series_output | tojson }}
-
-Visual Concept:
-{{ visual_concept | tojson }}

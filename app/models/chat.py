@@ -17,7 +17,7 @@ class ChatMetrics(BaseModel):
 
 class Attachment(BaseModel):
     type: str
-    attachment: list[Any]
+    attachment: list[Any] | dict[str, Any]
 
 
 class Message(BaseModel):

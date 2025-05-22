@@ -6,6 +6,7 @@ from typing import Any, Dict
 from pydantic import Field
 from typing import Annotated
 
+
 class VisualType(str, Enum):
     line = "line"
     area = "area"
@@ -24,9 +25,11 @@ class VisualType(str, Enum):
     rangeArea = "rangeArea"
     treemap = "treemap"
 
+
 class VisualData(BaseModel):
     series: Annotated[List[Any], "The data series for the chart"]
     options: Annotated[Dict[str, Any], "Options for rendering the chart"]
+
 
 class Visual(BaseModel):
     id: str
@@ -36,24 +39,27 @@ class Visual(BaseModel):
     description: str
     type: VisualType
     python_code: str
-    data_sources_used: List[str]
+    required_dataset_ids: List[str]
     status: str
     data: VisualData
     created_at: datetime
+
 
 class VisualConcept(BaseModel):
     title: str
     description: str
     type: VisualType
-    data_sources_used: List[str]
+    required_dataset_ids: List[str]
+
     def to_llm_dict(self) -> Dict[str, Any]:
         """Convert the VisualConcept to a plain dictionary."""
         return {
             "title": self.title,
             "description": self.description,
             "type": self.type.value,
-            "data_sources_used": self.data_sources_used
+            "required_dataset_ids": self.required_dataset_ids
         }
+
 
 class VisualConceptsLLMResponse(BaseModel):
     visual_concepts: List[VisualConcept]
@@ -62,10 +68,11 @@ class VisualConceptsLLMResponse(BaseModel):
 class VisualSampleDataLLMResponse(BaseModel):
     visual_sample_data: VisualData
 
+
 class VisualSampleData(BaseModel):
     visual_concept: VisualConcept
     visual_data: VisualData
 
+
 class VisualPythonCodeLLMResponse(BaseModel):
     visual_python_code: str
-

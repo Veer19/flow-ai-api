@@ -4,30 +4,23 @@ from app.agent.config import AgentState
 from app.utils.llm_provider import ainvoke_llm
 from app.models.agent_response import FormatResponseLLMResponse
 
-async def handle_non_data_query_llm(query: str, past_messages: List[Dict[str, Any]]  ) -> str:
+
+async def handle_non_data_query_llm(query: str, past_messages: List[Dict[str, Any]]) -> str:
     user_prompt = render_prompt("handle_non_data_query/user.jinja", {
         "query": query,
         "past_messages": past_messages
     })
     system_prompt = render_prompt("handle_non_data_query/system.jinja")
-
-    print("HANDLE NON DATA QUERY USER PROMPT")
-    print(user_prompt)
-    print("HANDLE NON DATA QUERY SYSTEM PROMPT")
-    print(system_prompt)
-    response:FormatResponseLLMResponse = await ainvoke_llm(
-        user_prompt=user_prompt, 
-        system_prompt=system_prompt, 
+    response: FormatResponseLLMResponse = await ainvoke_llm(
+        user_prompt=user_prompt,
+        system_prompt=system_prompt,
         profile="analyze",
         response_model=FormatResponseLLMResponse
     )
     return response
 
+
 async def handle_non_data_query(state: AgentState) -> AgentState:
-    try:
-        result: FormatResponseLLMResponse = await handle_non_data_query_llm(state.current_query, state.past_messages)
-        state.formatted_response = result
-        return state
-    except Exception as e:
-        print(f"[handle_non_data_query] Error: {str(e)}")
-        raise e
+    result: FormatResponseLLMResponse = await handle_non_data_query_llm(state.current_query, state.past_messages)
+    state.formatted_response = result
+    return state

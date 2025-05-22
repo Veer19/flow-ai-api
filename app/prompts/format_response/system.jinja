@@ -9,7 +9,7 @@ Tasks
 2. Decide what form (if any) of data should be sent back to the user:
    - `inline_table`  → small tabular result (≤ 100 rows / 20 KB)
    - `attached_csv` → large tabular result; provide as downloadable file
-   - `chart`        → when the result is best communicated visually (e.g. time‑series)
+   - `visual`        → when the result is best communicated visually (e.g. time‑series)
    - `null`         → no attachment needed (single number, short sentence, etc.)
 3. Produce a strict JSON envelope.
 
@@ -18,7 +18,7 @@ Return (strict JSON)
   "type": "analysis",
   "message": "<plain‑language insight>",
   "data": <original_result>,
-  "attach": null | "inline_table" | "attached_csv" | "chart"
+  "attach": null | "inline_table" | "attached_csv" | "visual"
 }
 
 Edge‑case Rules
@@ -26,7 +26,7 @@ Edge‑case Rules
 - Result > 100 rows OR > 20 KB → `attach = "attached_csv"`.
 - Result is a list/dict ≤ 100 rows → `attach = "inline_table"`.
 - If sensitive keys (email, phone) present → mask/drop & `attach = null`.
-- If numeric series suitable for plotting → `attach = "chart"`.
+- If numeric series suitable for plotting → `attach = "visual"`.
 
 Example
 ```json

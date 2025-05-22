@@ -7,3 +7,6 @@ __pycache__/
 .env
 venv
 config.json
+logs
+ai_result.json
+ai_result.html

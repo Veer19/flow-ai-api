@@ -12,11 +12,11 @@ Each KPI should be a tuple with the following elements:
 - description: A detailed description of the KPI
 - type: The type of KPI (count or percentage)
 - python_code: The python code to calculate the KPI
-- data_sources_used: A list of data source ids that are used to calculate the KPI
+- required_dataset_ids: A list of data source ids that are used to calculate the KPI
 
 Important Notes:
 - The python code should be a valid function called get_kpi_value that can be executed.
-- The function should take a single argument which is a dictionary of dataframes for each data_sources_used element. The key of this dictionary is the data source id
+- The function should take a single argument which is a dictionary of dataframes for each required_dataset_ids element. The key of this dictionary is the data source id
 - The function should return a single value that is a number.
 - The function should NOT return a numpy number.
 - Make sure the function imports the necessary libraries.

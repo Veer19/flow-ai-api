@@ -83,7 +83,6 @@ async def create_chat_thread_with_message(project_id: str, user_id: str, first_m
         result = await threads_collection.insert_one(thread_data)
         created_thread = await get_thread(str(result.inserted_id), user_id)
 
-        print("Create Message")
         await create_user_message(project_id, str(result.inserted_id), user_id, first_message)
         return created_thread
 
@@ -116,8 +115,6 @@ async def create_assistant_message(project_id: str, thread_id: str, user_id: str
     try:
         now = datetime.now(timezone.utc)
         attachments = []
-        # Save ai_result to json
-
         attach = ai_result.attach
         if attach:
             attach_data = ai_result.data
@@ -196,6 +193,7 @@ async def call_agent(project_id: str, thread_id: str, user_id: str, current_mess
         ai_message = await create_assistant_message(project_id, thread_id, user_id, agent_response.result)
         return ai_message, agent_response
     except Exception as e:
+        logger.error(f"Failed to call agent: {str(e)}")
         error_message = FormatResponseLLMResponse(
             type=ResponseType.ERROR,
             message="Something went wrong, please try again!"

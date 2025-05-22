@@ -6,7 +6,7 @@ Input Context
 - `datasets`: metadata (ids, filenames, columns, samples)
 
 Tasks
-1. Write a single function `analyze_data(datasets: dict)` implementing the operations.
+1. Write a single function `main(datasets: dict)` implementing the operations.
 2. The datasets will be a dictionary with keys equal to the dataset ids and values equal to pandas dataframes.
 
 Return (code only)
@@ -23,7 +23,7 @@ Edge‑case Rules
 
 Example (not to output verbatim)
 ```python
-def analyze_data(datasets: dict):
+def main(datasets: dict):
     import pandas as pd
     sales = datasets["879172390821093"]
     sales["month"] = pd.to_datetime(sales["order_date"]).dt.to_period("M")
